@@ -823,4 +823,8 @@ let test_cases =
 
 let main () = List.iter (fun test -> test ()) test_cases
 
-let () = main ()
+let () =
+  Printf.printf "[ocamlrep_test info]: start\n";
+  main ();
+  Printf.printf "[ocamlrep_test info]: end\n";
+  ()

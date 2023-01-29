@@ -286,3 +286,68 @@ pub extern "C" fn roundtrip_int64(value: usize) -> usize {
     let i = unsafe { ocamlrep_caml_builtins::Int64::from_ocaml(value).unwrap() };
     val(i)
 }
+
+#[cfg(test)]
+mod tests {
+    use std::process::Command;
+
+    fn workspace_dir() -> std::path::PathBuf {
+        let output = std::process::Command::new("cargo")
+            .arg("locate-project")
+            .arg("--workspace")
+            .arg("--message-format=plain")
+            .output()
+            .unwrap()
+            .stdout;
+        let cargo_path = std::path::Path::new(std::str::from_utf8(&output).unwrap().trim());
+        cargo_path.parent().unwrap().to_path_buf()
+    }
+
+    #[test]
+    fn ocamlrep_test() {
+        let mut targets: std::path::PathBuf = workspace_dir();
+        targets.push("target");
+        targets.push("debug");
+
+        // let mut ls = Command::new("pwd").output().unwrap().stdout;
+        // let path = std::path::Path::new(std::str::from_utf8(&ls).unwrap().trim());
+        // println!("{:?}", path);
+
+        let mut compile = Command::new("ocamlopt.opt");
+        compile.current_dir("..");
+        compile.args([
+            "-verbose",
+            "-c",
+            "test_ocamlrep.ml",
+            "-o",
+            "test_ocamlrep_ml.cmx",
+        ]);
+        let mut link = Command::new("ocamlopt.opt");
+        link.current_dir("..");
+        let link_search_path_flag = "-L".to_owned() + targets.as_path().to_str().unwrap();
+        link.args([
+            "-verbose",
+            "-o",
+            "ocamlrep_test",
+            "test_ocamlrep_ml.cmx",
+            "-ccopt",
+            link_search_path_flag.as_str(),
+            "-cclib",
+            "-ltest_bindings",
+            "-cclib",
+            "-locamlpool",
+        ]);
+        let mut p = compile.spawn().unwrap();
+        p.wait().ok().unwrap();
+        let mut p = link.spawn().unwrap();
+        p.wait().ok().unwrap();
+
+        let mut ocamlrep_test = Command::new("sh");
+        ocamlrep_test.current_dir("..");
+        ocamlrep_test
+            .args(["-c", "./ocamlrep_test"])
+            .current_dir("..");
+        let mut p = ocamlrep_test.spawn().unwrap();
+        p.wait().ok().unwrap();
+    }
+}
