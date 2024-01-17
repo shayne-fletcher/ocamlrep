@@ -12,13 +12,10 @@ jobs:
       - run: sudo apt-get update && sudo apt-get install opam
       - run: |
           opam init --compiler=5.1.1 --disable-sandboxing -y
-          echo 'eval $(opam env)' >> ~/.bashrc
+          opam env | sed "s/export .*//g" | sed "s/'//g" | sed "s/\;//g" >> $GITHUB_ENV
       - run: ./ocaml-setup.sh
-        shell: bash -io pipefail {0}
       - run: cargo build
-        shell: bash -io pipefail {0}
       - run: cargo test
-        shell: bash -io pipefail {0}
   macos-cargo-build-and-test:
     runs-on: macos-latest
     steps:
@@ -27,10 +24,7 @@ jobs:
       - run: brew install opam
       - run: |
           opam init --compiler=5.1.1 --disable-sandboxing -y
-          echo 'eval $(opam env)' >> ~/.bashrc
+          opam env | sed "s/export .*//g" | sed "s/'//g" | sed "s/\;//g" >> $GITHUB_ENV
       - run: ./ocaml-setup.sh
-        shell: bash -io pipefail {0}
       - run: cargo build
-        shell: bash -io pipefail {0}
       - run: cargo test
-        shell: bash -io pipefail {0}
