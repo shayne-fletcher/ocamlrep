@@ -2,14 +2,35 @@ name: Cargo build and test
 on:
   push:
   pull_request:
+  workflow_dispatch:
 jobs:
   linux-cargo-build-and-test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
-      - run: sudo apt-get update && sudo apt-get install libssl-dev cmake clang lld opam zstd
-      - run: opam init --compiler=5.1.1 --disable-sandboxing -y
-      - run: eval $(opam env) && ./ocaml-setup.sh
+      - run: sudo apt-get update && sudo apt-get install opam
+      - run: |
+          opam init --compiler=5.1.1 --disable-sandboxing -y
+          echo 'eval $(opam env)' >> ~/.bashrc
+      - run: ./ocaml-setup.sh
+        shell: bash -io pipefail {0}
       - run: cargo build
+        shell: bash -io pipefail {0}
       - run: cargo test
+        shell: bash -io pipefail {0}
+  macos-cargo-build-and-test:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - run: brew install opam
+      - run: |
+          opam init --compiler=5.1.1 --disable-sandboxing -y
+          echo 'eval $(opam env)' >> ~/.bashrc
+      - run: ./ocaml-setup.sh
+        shell: bash -io pipefail {0}
+      - run: cargo build
+        shell: bash -io pipefail {0}
+      - run: cargo test
+        shell: bash -io pipefail {0}
