@@ -14,7 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
+      - run: |-
+          git submodule add https://github.com/facebook/buck2-prelude.git prelude
+          git submodule --quiet update --remote --init --depth 1
       - uses: dtolnay/install-buck2@latest
+        with:
+          prelude-submodule: prelude
       - run: sudo apt-get update && sudo apt-get install opam
         if: matrix.os == 'ubuntu'
       - run: brew install opam
