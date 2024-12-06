@@ -24,5 +24,6 @@ jobs:
           opam env | sed -e "s/ export .*//g" -e "s/'//g" -e "s/\;//g" >> $GITHUB_ENV
       - run: ./ocaml-setup.sh
       - run: cargo install --git https://github.com/facebookincubator/reindeer.git reindeer --force
+      - run: echo $GITHUB_WORKSPACE/.cargo/bin >> $GITHUB_PATH
       - run: reindeer --third-party-dir shim/third-party/rust buckify
       - run: ./buck2 build root//... -v 2
